@@ -30,6 +30,9 @@
 # build files
 build
 
+# backup files
+*bak
+
 # Qt Creator files
 *.config
 *.creator
