@@ -1,0 +1,7 @@
+include(${VTK_USE_FILE})
+add_executable(vtkDistancePolyDataFilterTest vtkDistancePolyDataFilterTest.cxx)
+if(VTK_LIBRARIES)
+  target_link_libraries(vtkDistancePolyDataFilterTest ${VTK_LIBRARIES})
+else()
+  target_link_libraries(vtkDistancePolyDataFilterTest vtkHybrid vtkWidgets)
+endif()
