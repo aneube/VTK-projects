@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
     vtkSmartPointer<vtkPoints> shapePoints1 = input1->GetPoints();
     vtkIdType shapePointNo1 = shapePoints1->GetNumberOfPoints();
 
-    if(argc>4)
+    if(argc>5)
     {
       vtkIdType shapePointNo3 = input3->GetPoints()->GetNumberOfPoints();
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
 
     for (vtkIdType ii = 0; ii < shapePointNo1; ++ii)
     {
-      if(argc<=4 ||
+      if(argc<=5 ||
               input3->GetPointData()->GetScalars()->GetTuple1(ii)>=weightsForMeanThreshold)
       {
         meanDistance += std::abs(distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetTuple1(ii));
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
 
     for (vtkIdType ii = 0; ii < shapePointNo1; ++ii)
     {
-      if(argc<=4 ||
+      if(argc<=5 ||
               input3->GetPointData()->GetScalars()->GetTuple1(ii)>=weightsForMeanThreshold)
       {
         meanDistance2 += std::abs(distanceFilter2->GetOutput()->GetPointData()->GetScalars()->GetTuple1(ii));
