@@ -6,6 +6,7 @@
 #include <vtkPolyDataReader.h>
 #include <vtkPolyDataWriter.h>
 #include <vtkCleanPolyData.h>
+#include <vtkDoubleArray.h>
 #include <vtkPointData.h>
 
 #include <cmath>
@@ -136,20 +137,16 @@ int main(int argc, char* argv[])
     distanceFilter->NegateDistanceOn();
     distanceFilter->Update();
  
-    /*
-     * Save the first output
-     */
-    vtkSmartPointer<vtkPolyDataWriter> writer
-      = vtkSmartPointer<vtkPolyDataWriter>::New();
-#if VTK_MAJOR_VERSION <= 5
-    writer->SetInputConnection(distanceFilter->GetOutput());
-#else
-    writer->SetInputData(distanceFilter->GetOutput());
-#endif
-    writer->SetFileName(argv[3]);
-    writer->Update();
+    vtkSmartPointer<vtkPolyData> output1 = distanceFilter->GetOutput();
 
+    /*
+     * Compute stats
+     */
     /// iterate through points
+    vtkSmartPointer<vtkDoubleArray> scalars =
+        vtkSmartPointer<vtkDoubleArray>::New();
+     scalars->SetNumberOfValues(shapePointNo1);
+
     double meanDistance = 0.0;
     unsigned long count = 0;
 
@@ -158,8 +155,13 @@ int main(int argc, char* argv[])
       if(argc<=5 ||
               input3->GetPointData()->GetScalars()->GetTuple1(ii)>=weightsForMeanThreshold)
       {
-        meanDistance += std::abs(distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetTuple1(ii));
+        scalars->SetValue(ii, output1->GetPointData()->GetScalars()->GetTuple1(ii));
+        meanDistance += std::abs(output1->GetPointData()->GetScalars()->GetTuple1(ii));
         ++count;
+      }
+      else
+      {
+        scalars->SetValue(ii, 0);
       }
     }
 
@@ -173,7 +175,20 @@ int main(int argc, char* argv[])
       std::cout << "No points found in the specified region for mean distance"
                   << std::endl;
     }
+    output1->GetPointData()->SetScalars(scalars);
 
+    /*
+     * Save the first output
+     */
+    vtkSmartPointer<vtkPolyDataWriter> writer
+      = vtkSmartPointer<vtkPolyDataWriter>::New();
+#if VTK_MAJOR_VERSION <= 5
+    writer->SetInputConnection(output1);
+#else
+    writer->SetInputData(output1);
+#endif
+    writer->SetFileName(argv[3]);
+    writer->Update();
 
 
 
@@ -185,18 +200,15 @@ int main(int argc, char* argv[])
     distanceFilter2->SetInputConnection( 0, clean2->GetOutputPort() );
     distanceFilter2->Update();
 
+    vtkSmartPointer<vtkPolyData> output2 = distanceFilter2->GetOutput();
+
     /*
-     * Save the second output
+     * Compute stats
      */
-    vtkSmartPointer<vtkPolyDataWriter> writer2
-      = vtkSmartPointer<vtkPolyDataWriter>::New();
-#if VTK_MAJOR_VERSION <= 5
-    writer2->SetInputConnection(distanceFilter2->GetOutput());
-#else
-    writer2->SetInputData(distanceFilter2->GetOutput());
-#endif
-    writer2->SetFileName(argv[4]);
-    writer2->Update();
+    /// iterate through points
+    vtkSmartPointer<vtkDoubleArray> scalars2 =
+        vtkSmartPointer<vtkDoubleArray>::New();
+    scalars2->SetNumberOfValues(shapePointNo2);
 
     /// iterate through points
     double meanDistance2 = 0.0;
@@ -207,8 +219,13 @@ int main(int argc, char* argv[])
       if(argc<=7 ||
               input4->GetPointData()->GetScalars()->GetTuple1(ii)>=weightsForMeanThreshold2)
       {
-        meanDistance2 += std::abs(distanceFilter2->GetOutput()->GetPointData()->GetScalars()->GetTuple1(ii));
+        scalars2->SetValue(ii, output2->GetPointData()->GetScalars()->GetTuple1(ii));
+        meanDistance2 += std::abs(output2->GetPointData()->GetScalars()->GetTuple1(ii));
         ++count2;
+      }
+      else
+      {
+        scalars2->SetValue(ii, 0);
       }
     }
 
@@ -222,6 +239,20 @@ int main(int argc, char* argv[])
       std::cout << "No points found in the specified region for mean distance"
                   << std::endl;
     }
+    output2->GetPointData()->SetScalars(scalars2);
+
+    /*
+     * Save the second output
+     */
+    vtkSmartPointer<vtkPolyDataWriter> writer2
+      = vtkSmartPointer<vtkPolyDataWriter>::New();
+#if VTK_MAJOR_VERSION <= 5
+    writer2->SetInputConnection(output2);
+#else
+    writer2->SetInputData(output2);
+#endif
+    writer2->SetFileName(argv[4]);
+    writer2->Update();
 
     return EXIT_SUCCESS;
 }
