@@ -15,13 +15,14 @@ void printUsage(int argc, char** argv)
 {
   std::cerr << "Call: " << argc << std::endl;
   std::cerr << argv[0] << " args : inputMesh1 inputMesh2 outputMesh1 outputMesh2 "
-                       << "[weightsForDistanceMesh] [weightsForDistanceThreshold=0.1]"
+                       << "[weightsForDistanceMesh1] [weightsForDistanceThreshold1=0.1]"
+                       << "[weightsForDistanceMesh2] [weightsForDistanceThreshold2=0.1]"
              << std::endl;
   std::cerr << "Takes two meshes "
             << "and outputs mesh with point-to-cell distances as scalars."
             << std::endl
-            << "If weightsForDistanceMesh specified, the mean distance over voxels "
-            << "where the weightsForDistanceMesh scalars greater than weightsForDistanceThreshold."
+            << "If weightsForDistanceMesh(1,2) specified, the mean distance over voxels "
+            << "where the weightsForDistanceMesh(1,2) scalars greater than weightsForDistanceThreshold(1,2)."
             << std::endl;
 }
 
@@ -38,6 +39,7 @@ int main(int argc, char* argv[])
     vtkSmartPointer<vtkPolyData> input1;
     vtkSmartPointer<vtkPolyData> input2;
     vtkSmartPointer<vtkPolyData> input3;
+    vtkSmartPointer<vtkPolyData> input4;
     vtkSmartPointer<vtkPolyDataReader> reader1 =
       vtkSmartPointer<vtkPolyDataReader>::New();
     reader1->SetFileName(argv[1]);
@@ -58,16 +60,32 @@ int main(int argc, char* argv[])
       reader3->Update();
       input3 = reader3->GetOutput();
     }
-
     double weightsForMeanThreshold = 0.1;
     if(argc>6)
     {
       weightsForMeanThreshold = std::atof(argv[6]);
     }
 
+    vtkSmartPointer<vtkPolyDataReader> reader4 =
+      vtkSmartPointer<vtkPolyDataReader>::New();
+    if(argc>7)
+    {
+      reader4->SetFileName(argv[7]);
+      reader4->Update();
+      input4 = reader4->GetOutput();
+    }
+    double weightsForMeanThreshold2 = 0.1;
+    if(argc>8)
+    {
+      weightsForMeanThreshold2 = std::atof(argv[8]);
+    }
+
+
     /// check if same number of points
     vtkSmartPointer<vtkPoints> shapePoints1 = input1->GetPoints();
     vtkIdType shapePointNo1 = shapePoints1->GetNumberOfPoints();
+    vtkSmartPointer<vtkPoints> shapePoints2 = input2->GetPoints();
+    vtkIdType shapePointNo2 = shapePoints2->GetNumberOfPoints();
 
     if(argc>5)
     {
@@ -76,7 +94,19 @@ int main(int argc, char* argv[])
       if(shapePointNo1 != shapePointNo3)
       {
         std::cerr << "ERROR: The inputMesh1 do not have the same "
-                  << "number of points as weightsForMeanMesh!" << std::endl;
+                  << "number of points as weightsForMeanMesh1!" << std::endl;
+        return 1;
+      }
+    }
+
+    if(argc>7)
+    {
+      vtkIdType shapePointNo4 = input4->GetPoints()->GetNumberOfPoints();
+
+      if(shapePointNo2 != shapePointNo4)
+      {
+        std::cerr << "ERROR: The inputMesh2 do not have the same "
+                  << "number of points as weightsForMeanMesh2!" << std::endl;
         return 1;
       }
     }
@@ -172,10 +202,10 @@ int main(int argc, char* argv[])
     double meanDistance2 = 0.0;
     unsigned long count2 = 0;
 
-    for (vtkIdType ii = 0; ii < shapePointNo1; ++ii)
+    for (vtkIdType ii = 0; ii < shapePointNo2; ++ii)
     {
-      if(argc<=5 ||
-              input3->GetPointData()->GetScalars()->GetTuple1(ii)>=weightsForMeanThreshold)
+      if(argc<=7 ||
+              input4->GetPointData()->GetScalars()->GetTuple1(ii)>=weightsForMeanThreshold2)
       {
         meanDistance2 += std::abs(distanceFilter2->GetOutput()->GetPointData()->GetScalars()->GetTuple1(ii));
         ++count2;
