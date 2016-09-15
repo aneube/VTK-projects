@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 
       std::cout << "Mean distance over specified region: " << meanDistance
                 << " +- " << sigma << " (conf.int +- " << conf_interval
-                << ", " << count << " points)." << std::endl;
+                << " " << count << " points)." << std::endl;
     }
     else
     {
@@ -257,7 +257,7 @@ int main(int argc, char* argv[])
 
       std::cout << "Mean distance over specified region: " << meanDistance2
                 << " +- " << sigma2 << " (conf.int +- " << conf_interval2
-                << ", " << count2 << " points)." << std::endl;
+                << " " << count2 << " points)." << std::endl;
     }
     else
     {
@@ -270,6 +270,8 @@ int main(int argc, char* argv[])
     {
         std::cout << "Average mean distance over specified region: " << 0.5*(meanDistance + meanDistance2)
                   << " +- " << 0.5 * (sigma + sigma2) << " , conf.int +- " << 0.5 * (conf_interval + conf_interval2)
+                  << " : " << 0.5*(meanDistance + meanDistance2) - 0.5 * (conf_interval + conf_interval2)
+                  << " - " << 0.5*(meanDistance + meanDistance2) + 0.5 * (conf_interval + conf_interval2)
                   << std::endl;
     }
 
