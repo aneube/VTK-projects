@@ -148,7 +148,9 @@ int main(int argc, char* argv[])
      scalars->SetNumberOfValues(shapePointNo1);
 
     double meanDistance = 0.0;
+    double meanDistanceSquared = 0.0;
     unsigned long count = 0;
+    double distance = 0.0;
 
     for (vtkIdType ii = 0; ii < shapePointNo1; ++ii)
     {
@@ -156,7 +158,9 @@ int main(int argc, char* argv[])
               input3->GetPointData()->GetScalars()->GetTuple1(ii)>=weightsForMeanThreshold)
       {
         scalars->SetValue(ii, output1->GetPointData()->GetScalars()->GetTuple1(ii));
-        meanDistance += std::abs(output1->GetPointData()->GetScalars()->GetTuple1(ii));
+        distance = std::abs(output1->GetPointData()->GetScalars()->GetTuple1(ii));
+        meanDistance += distance;
+        meanDistanceSquared += distance * distance;
         ++count;
       }
       else
@@ -167,8 +171,15 @@ int main(int argc, char* argv[])
 
     if(count)
     {
-      std::cout << "Mean distance over specified region: " << meanDistance/count
-                << " (" << count << " points)." << std::endl;
+      // Compute the standard deviation and the 95% confidence interval
+      meanDistance /= count;
+      meanDistanceSquared /= count;
+      double sigma = std::sqrt(meanDistanceSquared - meanDistance * meanDistance);
+      double conf_interval = 1.96 * sigma / std::sqrt(static_cast<double>(count));
+
+      std::cout << "Mean distance over specified region: " << meanDistance
+                << " +- " << sigma << " (conf.int +- " << conf_interval
+                << ", " << count << " points)." << std::endl;
     }
     else
     {
@@ -212,6 +223,7 @@ int main(int argc, char* argv[])
 
     /// iterate through points
     double meanDistance2 = 0.0;
+    double meanDistance2Squared = 0.0;
     unsigned long count2 = 0;
 
     for (vtkIdType ii = 0; ii < shapePointNo2; ++ii)
@@ -220,7 +232,9 @@ int main(int argc, char* argv[])
               input4->GetPointData()->GetScalars()->GetTuple1(ii)>=weightsForMeanThreshold2)
       {
         scalars2->SetValue(ii, output2->GetPointData()->GetScalars()->GetTuple1(ii));
-        meanDistance2 += std::abs(output2->GetPointData()->GetScalars()->GetTuple1(ii));
+        distance = std::abs(output2->GetPointData()->GetScalars()->GetTuple1(ii));
+        meanDistance2 += distance;
+        meanDistance2Squared += distance * distance;
         ++count2;
       }
       else
@@ -231,8 +245,15 @@ int main(int argc, char* argv[])
 
     if(count2)
     {
-      std::cout << "Mean distance over specified region: " << meanDistance2/count2
-                << " (" << count2 << " points)." << std::endl;
+      // Compute the standard deviation and the 95% confidence interval
+      meanDistance2 /= count2;
+      meanDistance2Squared /= count2;
+      double sigma2 = std::sqrt(meanDistance2Squared - meanDistance2 * meanDistance2);
+      double conf_interval2 = 1.96 * sigma2 / std::sqrt(static_cast<double>(count2));
+
+      std::cout << "Mean distance over specified region: " << meanDistance2
+                << " +- " << sigma2 << " (conf.int +- " << conf_interval2
+                << ", " << count2 << " points)." << std::endl;
     }
     else
     {
