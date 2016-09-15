@@ -169,13 +169,15 @@ int main(int argc, char* argv[])
       }
     }
 
+    double sigma;
+    double conf_interval;
     if(count)
     {
       // Compute the standard deviation and the 95% confidence interval
       meanDistance /= count;
       meanDistanceSquared /= count;
-      double sigma = std::sqrt(meanDistanceSquared - meanDistance * meanDistance);
-      double conf_interval = 1.96 * sigma / std::sqrt(static_cast<double>(count));
+      sigma = std::sqrt(meanDistanceSquared - meanDistance * meanDistance);
+      conf_interval = 1.96 * sigma / std::sqrt(static_cast<double>(count));
 
       std::cout << "Mean distance over specified region: " << meanDistance
                 << " +- " << sigma << " (conf.int +- " << conf_interval
@@ -243,13 +245,15 @@ int main(int argc, char* argv[])
       }
     }
 
+    double sigma2;
+    double conf_interval2;
     if(count2)
     {
       // Compute the standard deviation and the 95% confidence interval
       meanDistance2 /= count2;
       meanDistance2Squared /= count2;
-      double sigma2 = std::sqrt(meanDistance2Squared - meanDistance2 * meanDistance2);
-      double conf_interval2 = 1.96 * sigma2 / std::sqrt(static_cast<double>(count2));
+      sigma2 = std::sqrt(meanDistance2Squared - meanDistance2 * meanDistance2);
+      conf_interval2 = 1.96 * sigma2 / std::sqrt(static_cast<double>(count2));
 
       std::cout << "Mean distance over specified region: " << meanDistance2
                 << " +- " << sigma2 << " (conf.int +- " << conf_interval2
@@ -261,6 +265,13 @@ int main(int argc, char* argv[])
                   << std::endl;
     }
     output2->GetPointData()->SetScalars(scalars2);
+
+    if(count && count2)
+    {
+        std::cout << "Average mean distance over specified region: " << 0.5*(meanDistance + meanDistance2)
+                  << " +- " << 0.5 * (sigma + sigma2) << " , conf.int +- " << 0.5 * (conf_interval + conf_interval2)
+                  << std::endl;
+    }
 
     /*
      * Save the second output
