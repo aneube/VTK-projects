@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
       }
     }
 
-
+/*
     vtkSmartPointer<vtkCleanPolyData> clean1 =
       vtkSmartPointer<vtkCleanPolyData>::New();
 #if VTK_MAJOR_VERSION <= 5
@@ -128,12 +128,15 @@ int main(int argc, char* argv[])
 #else
     clean2->SetInputData( input2);
 #endif
- 
+*/
     vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter =
       vtkSmartPointer<vtkDistancePolyDataFilter>::New();
  
-    distanceFilter->SetInputConnection( 0, clean1->GetOutputPort() );
-    distanceFilter->SetInputConnection( 1, clean2->GetOutputPort() );
+    //distanceFilter->SetInputConnection( 0, clean1->GetOutputPort() );
+    //distanceFilter->SetInputConnection( 1, clean2->GetOutputPort() );
+    distanceFilter->SetInputData( 0, input1 );
+    distanceFilter->SetInputData( 1, input2 );
+
     distanceFilter->NegateDistanceOn();
     distanceFilter->Update();
  
@@ -209,8 +212,12 @@ int main(int argc, char* argv[])
     vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter2 =
       vtkSmartPointer<vtkDistancePolyDataFilter>::New();
 
-    distanceFilter2->SetInputConnection( 1, clean1->GetOutputPort() );
-    distanceFilter2->SetInputConnection( 0, clean2->GetOutputPort() );
+//    distanceFilter2->SetInputConnection( 1, clean1->GetOutputPort() );
+//    distanceFilter2->SetInputConnection( 0, clean2->GetOutputPort() );
+    distanceFilter2->SetInputData( 0, input2 );
+    distanceFilter2->SetInputData( 1, input1 );
+
+
     distanceFilter2->Update();
 
     vtkSmartPointer<vtkPolyData> output2 = distanceFilter2->GetOutput();
