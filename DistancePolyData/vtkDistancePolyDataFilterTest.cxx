@@ -11,6 +11,9 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
+#include <vector>
+#include <string>
 
 void printUsage(int argc, char** argv)
 {
@@ -81,6 +84,12 @@ int main(int argc, char* argv[])
       weightsForMeanThreshold2 = std::atof(argv[8]);
     }
 
+
+    // Prepare the text file to save all the distances
+    std::string output1_filename = argv[3];
+    std::string distances_filename = output1_filename.replace(output1_filename.end()-4, output1_filename.end(), "_distances.txt");
+    ofstream distances_file;
+    distances_file.open(distances_filename.c_str());
 
     /// check if same number of points
     vtkSmartPointer<vtkPoints> shapePoints1 = input1->GetPoints();
@@ -154,6 +163,7 @@ int main(int argc, char* argv[])
     double meanDistanceSquared = 0.0;
     unsigned long count = 0;
     double distance = 0.0;
+    std::vector<double> distance_values;
 
     for (vtkIdType ii = 0; ii < shapePointNo1; ++ii)
     {
@@ -162,9 +172,12 @@ int main(int argc, char* argv[])
       {
         scalars->SetValue(ii, output1->GetPointData()->GetScalars()->GetTuple1(ii));
         distance = std::abs(output1->GetPointData()->GetScalars()->GetTuple1(ii));
+        distance_values.push_back(distance);
         meanDistance += distance;
         meanDistanceSquared += distance * distance;
         ++count;
+
+        distances_file << distance << "\n";
       }
       else
       {
@@ -242,9 +255,12 @@ int main(int argc, char* argv[])
       {
         scalars2->SetValue(ii, output2->GetPointData()->GetScalars()->GetTuple1(ii));
         distance = std::abs(output2->GetPointData()->GetScalars()->GetTuple1(ii));
+        distance_values.push_back(distance);
         meanDistance2 += distance;
         meanDistance2Squared += distance * distance;
         ++count2;
+
+        distances_file << distance << "\n";
       }
       else
       {
@@ -275,10 +291,19 @@ int main(int argc, char* argv[])
 
     if(count && count2)
     {
+        // compute quantiles
+        std::sort(distance_values.begin(), distance_values.end());
+        int size = distance_values.size();
+        int q90 = static_cast<int>(0.9*size + 0.5);
+        int q95 = static_cast<int>(0.95*size + 0.5);
+
         std::cout << "Average mean distance over specified region: " << 0.5*(meanDistance + meanDistance2)
                   << " +- " << 0.5 * (sigma + sigma2) << " , conf.int +- " << 0.5 * (conf_interval + conf_interval2)
                   << " : " << 0.5*(meanDistance + meanDistance2) - 0.5 * (conf_interval + conf_interval2)
                   << " - " << 0.5*(meanDistance + meanDistance2) + 0.5 * (conf_interval + conf_interval2)
+                  << " , 90% quantile q90: " << distance_values[q90]
+                  << " , 95% quantile q95: " << distance_values[q95]
+                  << " , max: " << distance_values[size-1]
                   << std::endl;
     }
 
@@ -294,6 +319,8 @@ int main(int argc, char* argv[])
 #endif
     writer2->SetFileName(argv[4]);
     writer2->Update();
+
+    distances_file.close();
 
     return EXIT_SUCCESS;
 }
